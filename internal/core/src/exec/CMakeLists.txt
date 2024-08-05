@@ -19,9 +19,12 @@ set(MILVUS_EXEC_SRCS
         expression/BinaryArithOpEvalRangeExpr.cpp
         expression/BinaryRangeExpr.cpp
         expression/AlwaysTrueExpr.cpp
+        expression/CallExpr.cpp
         expression/CompareExpr.cpp
         expression/JsonContainsExpr.cpp
         expression/ExistsExpr.cpp
+        expression/function/FunctionFactory.cpp
+        expression/function/RegisterFunction.cpp
         operator/FilterBits.cpp
         operator/Operator.cpp
         Driver.cpp

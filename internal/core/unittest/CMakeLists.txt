@@ -28,6 +28,7 @@ set(MILVUS_TEST_FILES
         test_c_stream_reduce.cpp
         test_expr.cpp
         test_float16.cpp
+        test_function.cpp
         test_growing.cpp
         test_growing_index.cpp
         test_indexing.cpp

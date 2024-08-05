@@ -198,6 +198,10 @@ TEST_P(TaskTest, LogicalExpr) {
     EXPECT_EQ(num_rows, num_rows_);
 }
 
+TEST_P(TaskTest, CallExpr) {
+
+}
+
 TEST_P(TaskTest, CompileInputs_and) {
     using namespace milvus;
     using namespace milvus::query;

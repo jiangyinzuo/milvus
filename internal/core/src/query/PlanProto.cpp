@@ -519,6 +519,17 @@ ProtoParser::ParseBinaryRangeExpr(const proto::plan::BinaryRangeExpr& expr_pb) {
 }
 
 expr::TypedExprPtr
+ParseCallExpr(const proto::plan::CompareExpr& expr_pb) {
+    PanicInfo(NotImplemented, "ParseCallExpr");
+    // return std::make_shared<expr::CallTypeExpr>();
+}
+
+ExprPtr
+ParseCallExpr(const proto::plan::CallExpr& expr_pb) {
+    PanicInfo(NotImplemented, "ParseCallExpr");
+}
+
+expr::TypedExprPtr
 ProtoParser::ParseCompareExprs(const proto::plan::CompareExpr& expr_pb) {
     auto& left_column_info = expr_pb.left_column_info();
     auto left_field_id = FieldId(left_column_info.field_id());

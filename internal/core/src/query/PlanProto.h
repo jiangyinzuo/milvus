@@ -41,6 +41,9 @@ class ProtoParser {
     ParseBinaryRangeExpr(const proto::plan::BinaryRangeExpr& expr_pb);
 
     ExprPtr
+    ParseCallExpr(const proto::plan::CallExpr& expr_pb);
+
+    ExprPtr
     ParseCompareExpr(const proto::plan::CompareExpr& expr_pb);
 
     ExprPtr
@@ -85,6 +88,9 @@ class ProtoParser {
 
     expr::TypedExprPtr
     ParseBinaryRangeExprs(const proto::plan::BinaryRangeExpr& expr_pb);
+
+    expr::TypedExprPtr
+    ParseCallExpr(const proto::plan::CompareExpr& expr_pb);
 
     expr::TypedExprPtr
     ParseCompareExprs(const proto::plan::CompareExpr& expr_pb);
