@@ -608,6 +608,34 @@ func (v *ParserVisitor) getChildColumnInfo(identifier, child antlr.TerminalNode)
 	return v.getColumnInfoFromJSONIdentifier(child.GetText())
 }
 
+// VisitCall parses the expr to call plan.
+func (v *ParserVisitor) VisitCall(ctx *parser.CallContext) interface{} {
+	functionName := ctx.Identifier(0).GetText()
+	numParams := len(ctx.AllIdentifier()) + len(ctx.AllJSONIdentifier()) - 1
+	funcParameters := make([]*planpb.ColumnInfo, 0, numParams)
+	for i := 1; i < ctx.GetChildCount(); i++ {
+		child := ctx.GetChild(i)
+		if c, ok := child.(antlr.TerminalNode); ok {
+			switch c.GetSymbol().GetTokenType() {
+			case parser.PlanParserIdentifier | parser.PlanParserJSONIdentifier:
+				param := getExpr(c.Accept(v))
+				funcParameters = append(funcParameters, toColumnInfo(param))
+			}
+		}
+	}
+	return &ExprWithType{
+		expr: &planpb.Expr{
+			Expr: &planpb.Expr_CallExpr{
+				CallExpr: &planpb.CallExpr{
+					FunctionName:       functionName,
+					FunctionParameters: funcParameters,
+				},
+			},
+		},
+		dataType: schemapb.DataType_Bool,
+	}
+}
+
 // VisitRange translates expr to range plan.
 func (v *ParserVisitor) VisitRange(ctx *parser.RangeContext) interface{} {
 	columnInfo, err := v.getChildColumnInfo(ctx.Identifier(), ctx.JSONIdentifier())

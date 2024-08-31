@@ -104,6 +104,23 @@ func TestExpr_Term(t *testing.T) {
 	}
 }
 
+func TestExpr_Call(t *testing.T) {
+	schema := newTestSchema()
+	helper, err := typeutil.CreateSchemaHelper(schema)
+	assert.NoError(t, err)
+
+	exprStrs := []string{
+		`hello123()`,
+		`lt(Int32Field)`,
+		`empty(VarCharField,)`,
+		`f2(Int64Field)`,
+		`f3(JSON_FIELD["A"], Int32Field)`,
+	}
+	for _, exprStr := range exprStrs {
+		assertValidExpr(t, helper, exprStr)
+	}
+}
+
 func TestExpr_Compare(t *testing.T) {
 	schema := newTestSchema()
 	helper, err := typeutil.CreateSchemaHelper(schema)
