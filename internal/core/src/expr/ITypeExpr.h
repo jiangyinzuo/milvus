@@ -211,6 +211,7 @@ class ITypeExpr {
 
 using TypedExprPtr = std::shared_ptr<const ITypeExpr>;
 
+// NOTE: unused
 class InputTypeExpr : public ITypeExpr {
  public:
     InputTypeExpr(DataType type) : ITypeExpr(type) {
@@ -224,42 +225,7 @@ class InputTypeExpr : public ITypeExpr {
 
 using InputTypeExprPtr = std::shared_ptr<const InputTypeExpr>;
 
-class CallTypeExpr : public ITypeExpr {
- public:
-    CallTypeExpr(DataType type,
-                 const std::vector<TypedExprPtr>& inputs,
-                 std::string fun_name)
-        : ITypeExpr{type, std::move(inputs)} {
-    }
-
-    virtual ~CallTypeExpr() = default;
-
-    virtual const std::string&
-    name() const {
-        return name_;
-    }
-
-    std::string
-    ToString() const override {
-        std::string str{};
-        str += name();
-        str += "(";
-        for (size_t i = 0; i < inputs_.size(); ++i) {
-            if (i != 0) {
-                str += ",";
-            }
-            str += inputs_[i]->ToString();
-        }
-        str += ")";
-        return str;
-    }
-
- private:
-    std::string name_;
-};
-
-using CallTypeExprPtr = std::shared_ptr<const CallTypeExpr>;
-
+// NOTE: unused
 class FieldAccessTypeExpr : public ITypeExpr {
  public:
     FieldAccessTypeExpr(DataType type, const std::string& name)
@@ -594,6 +560,47 @@ class BinaryArithOpEvalRangeExpr : public ITypeFilterExpr {
     const proto::plan::GenericValue right_operand_;
     const proto::plan::GenericValue value_;
 };
+
+class CallTypeExpr : public ITypeFilterExpr {
+ public:
+    CallTypeExpr(const std::vector<FieldId>& parameter_field_ids,
+                 const std::vector<DataType>& parameter_data_types,
+                 std::string fun_name)
+        : parameter_field_ids_(std::move(parameter_field_ids)),
+          parameter_data_types_(std::move(parameter_data_types)),
+          fun_name_(std::move(fun_name)) {
+    }
+
+    virtual ~CallTypeExpr() = default;
+
+    const std::string&
+    fun_name() const {
+        return fun_name_;
+    }
+
+    std::string
+    ToString() const override {
+        std::string parameters;
+        for (size_t i = 0; i < parameter_field_ids_.size(); ++i) {
+            parameters += fmt::format("Field ID: {}, Data Type: {}",
+                                      parameter_field_ids_[i].get(),
+                                      parameter_data_types_[i]);
+        }
+
+        return fmt::format("CallTypeExpr:[Function Name: {}, Parameters: {}]",
+                           fun_name_,
+                           parameters);
+    }
+
+ public:
+    const std::vector<FieldId> parameter_field_ids_;
+    const std::vector<DataType> parameter_data_types_;
+
+ private:
+    std::string fun_name_;
+};
+
+using CallTypeExprPtr = std::shared_ptr<const CallTypeExpr>;
 
 class CompareExpr : public ITypeFilterExpr {
  public:

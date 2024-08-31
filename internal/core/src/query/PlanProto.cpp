@@ -15,13 +15,14 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "ExprImpl.h"
 #include "common/VectorTrait.h"
 #include "common/EasyAssert.h"
-#include "generated/ExtractInfoExprVisitor.h"
 #include "generated/ExtractInfoPlanNodeVisitor.h"
 #include "pb/plan.pb.h"
+#include "query/Expr.h"
 #include "query/Utils.h"
 #include "knowhere/comp/materialized_view.h"
 
@@ -531,6 +532,23 @@ ProtoParser::ParseBinaryRangeExpr(const proto::plan::BinaryRangeExpr& expr_pb) {
 }
 
 expr::TypedExprPtr
+ProtoParser::ParseCallExprs(const proto::plan::CallExpr& expr_pb) {
+    std::vector<FieldId> parameter_field_ids;
+    std::vector<DataType> parameter_data_types;
+    for (auto& column_info : expr_pb.function_parameters()) {
+        auto field_id = FieldId(column_info.field_id());
+        auto data_type = schema[field_id].get_data_type();
+        Assert(data_type == (DataType)column_info.data_type());
+        parameter_field_ids.push_back(field_id);
+        parameter_data_types.push_back(data_type);
+    }
+    return std::make_shared<expr::CallTypeExpr>(
+        parameter_field_ids,
+        parameter_data_types,
+        expr_pb.function_name());
+}
+
+expr::TypedExprPtr
 ProtoParser::ParseCompareExprs(const proto::plan::CompareExpr& expr_pb) {
     auto& left_column_info = expr_pb.left_column_info();
     auto left_field_id = FieldId(left_column_info.field_id());
@@ -979,6 +997,9 @@ ProtoParser::ParseExprs(const proto::plan::Expr& expr_pb) {
         }
         case ppe::kJsonContainsExpr: {
             return ParseJsonContainsExprs(expr_pb.json_contains_expr());
+        }
+        case ppe::kCallExpr: {
+            return ParseCallExprs(expr_pb.call_expr());
         }
         default: {
             std::string s;

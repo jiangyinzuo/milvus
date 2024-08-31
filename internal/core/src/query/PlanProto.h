@@ -87,6 +87,9 @@ class ProtoParser {
     ParseBinaryRangeExprs(const proto::plan::BinaryRangeExpr& expr_pb);
 
     expr::TypedExprPtr
+    ParseCallExprs(const proto::plan::CallExpr& expr_pb);
+
+    expr::TypedExprPtr
     ParseCompareExprs(const proto::plan::CompareExpr& expr_pb);
 
     expr::TypedExprPtr
@@ -112,7 +115,7 @@ class ProtoParser {
 };
 
 }  // namespace milvus::query
-   //
+//
 template <>
 struct fmt::formatter<milvus::proto::plan::GenericValue::ValCase>
     : formatter<string_view> {

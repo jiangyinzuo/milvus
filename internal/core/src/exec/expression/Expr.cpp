@@ -19,6 +19,7 @@
 #include "exec/expression/AlwaysTrueExpr.h"
 #include "exec/expression/BinaryArithOpEvalRangeExpr.h"
 #include "exec/expression/BinaryRangeExpr.h"
+#include "exec/expression/CallExpr.h"
 #include "exec/expression/CompareExpr.h"
 #include "exec/expression/ConjunctExpr.h"
 #include "exec/expression/ExistsExpr.h"
@@ -27,6 +28,9 @@
 #include "exec/expression/LogicalUnaryExpr.h"
 #include "exec/expression/TermExpr.h"
 #include "exec/expression/UnaryExpr.h"
+
+#include <memory>
+
 namespace milvus {
 namespace exec {
 
@@ -156,8 +160,14 @@ CompileExpression(const expr::TypedExprPtr& expr,
     };
     auto input_types = GetTypes(compiled_inputs);
 
-    if (auto call = dynamic_cast<const expr::CallTypeExpr*>(expr.get())) {
-        // TODO: support function register and search mode
+    if (auto call = std::dynamic_pointer_cast<const expr::CallTypeExpr>(expr)) {
+        result = std::make_shared<PhyCallExpr>(
+            compiled_inputs,
+            call,
+            "PhyCallExpr",
+            context->get_segment(),
+            context->get_active_count(),
+            context->query_config()->get_expr_batch_size());
     } else if (auto casted_expr = std::dynamic_pointer_cast<
                    const milvus::expr::UnaryRangeFilterExpr>(expr)) {
         result = std::make_shared<PhyUnaryRangeFilterExpr>(

@@ -102,6 +102,12 @@ message BinaryRangeExpr {
   GenericValue upper_value = 5;
 }
 
+message CallExpr {
+  string function_name = 1;
+  // Currently we only consider the case that all parameters are columns.
+  repeated ColumnInfo function_parameters = 2;
+}
+
 message CompareExpr {
   ColumnInfo left_column_info = 1;
   ColumnInfo right_column_info = 2;
@@ -188,6 +194,7 @@ message Expr {
     ExistsExpr exists_expr = 11;
     AlwaysTrueExpr always_true_expr = 12;
     JSONContainsExpr json_contains_expr = 13;
+    CallExpr call_expr = 14;
   };
 }
 

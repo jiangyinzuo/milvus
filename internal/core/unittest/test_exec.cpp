@@ -31,6 +31,7 @@
 #include "exec/QueryContext.h"
 #include "expr/ITypeExpr.h"
 #include "exec/expression/Expr.h"
+#include "exec/expression/function/FunctionFactory.h"
 
 using namespace milvus;
 using namespace milvus::exec;
@@ -44,6 +45,10 @@ class TaskTest : public testing::TestWithParam<DataType> {
         using namespace milvus;
         using namespace milvus::query;
         using namespace milvus::segcore;
+        milvus::exec::expression::FunctionFactory& factory =
+            milvus::exec::expression::FunctionFactory::instance();
+        factory.initialize();
+
         auto schema = std::make_shared<Schema>();
         auto vec_fid = schema->AddDebugField(
             "fakevec", GetParam(), 16, knowhere::metric::L2);
@@ -116,6 +121,57 @@ INSTANTIATE_TEST_SUITE_P(TaskTestSuite,
                          TaskTest,
                          ::testing::Values(DataType::VECTOR_FLOAT,
                                            DataType::VECTOR_SPARSE_FLOAT));
+
+TEST_P(TaskTest, RegisterFunction) {
+    milvus::exec::expression::FunctionFactory& factory =
+        milvus::exec::expression::FunctionFactory::instance();
+    ASSERT_LE(factory.getFilterFunctionNum(), 1);
+    auto all_functions = factory.listAllFilterFunctions();
+    for (auto& f : all_functions) {
+        std::cout << f.toString() << std::endl;
+    }
+
+    auto func_ptr = factory.getFilterScalarFunction(
+        milvus::exec::expression::FilterFunctionRegisterKey{
+            "empty", {DataType::VARCHAR}});
+    ASSERT_TRUE(func_ptr != nullptr);
+}
+
+TEST_P(TaskTest, CallExpr) {
+    expr::ColumnInfo col(field_map_["string1"], DataType::VARCHAR);
+    std::vector<FieldId> field_ids = {col.field_id_};
+    std::vector<DataType> data_types = {col.data_type_};
+    auto call_expr = std::make_shared<milvus::expr::CallTypeExpr>(
+        field_ids, data_types, "empty");
+    std::vector<milvus::plan::PlanNodePtr> sources;
+    auto filter_node = std::make_shared<milvus::plan::FilterBitsNode>(
+        "plannode id 1", call_expr, sources);
+    auto plan = plan::PlanFragment(filter_node);
+    auto query_context = std::make_shared<milvus::exec::QueryContext>(
+        "test1",
+        segment_.get(),
+        1000000,
+        MAX_TIMESTAMP,
+        std::make_shared<milvus::exec::QueryConfig>(
+            std::unordered_map<std::string, std::string>{}));
+
+    auto start = std::chrono::steady_clock::now();
+    auto task = Task::Create("task_call_expr_empty", plan, 0, query_context);
+    int64_t num_rows = 0;
+    int i = 0;
+    for (;;) {
+        auto result = task->Next();
+        if (!result) {
+            break;
+        }
+        num_rows += result->size();
+    }
+    auto cost = std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::steady_clock::now() - start)
+                    .count();
+    std::cout << "cost: " << cost << "us" << std::endl;
+    EXPECT_EQ(num_rows, num_rows_);
+}
 
 TEST_P(TaskTest, UnaryExpr) {
     ::milvus::proto::plan::GenericValue value;
