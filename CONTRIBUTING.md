@@ -34,6 +34,10 @@ As for everything else in the project, the contributions to Milvus are governed 
 | Tech writers and docs enthusiasts        | [milvus-docs](https://github.com/milvus-io/milvus-docs)                                                                                                                             | [Contributing to milvus docs](https://github.com/milvus-io/milvus-docs/blob/v2.0.0/CONTRIBUTING.md) |
 | Web developers                           | [milvus-insight](https://github.com/zilliztech/milvus-insight)                                                                                                                      |                                                                                                     |
 
+In [milvus](https://github.com/milvus-io/milvus), if you are willing to
+implement a new filtering function, see [filtering functions](./internal/core/src/exec/expression/function/README.md)
+for details.
+
 ## How can you contribute?
 
 ### Contributing code
